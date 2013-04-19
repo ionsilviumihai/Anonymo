@@ -7,12 +7,14 @@
 //
 
 #import "CommentsViewController.h"
+#import "photoViewController.h"
 
 @interface CommentsViewController ()
 
 @end
 
 @implementation CommentsViewController
+
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -28,10 +30,19 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
     
+    [self.imagePoza setUserInteractionEnabled:YES];
+    
+    UITapGestureRecognizer *tapPhoto = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showPicture)];
+    [self.imagePoza addGestureRecognizer:tapPhoto];
+    
     NSUserDefaults * userDefault = [NSUserDefaults standardUserDefaults];//
     if([userDefault objectForKey:@"Comentariu"])
     {
         [self.myComment setText:[userDefault objectForKey:@"Comentariu"]];
+    }
+    if(self.navigationController)
+    {
+        [self.closeButton setHidden:YES];
     }
     
     [self.myComment setDelegate:self];
@@ -83,12 +94,65 @@
         
 }
 
+- (IBAction)buttonTakeAPhoto:(id)sender {
+    UIAlertView *alerta = [[UIAlertView alloc] initWithTitle:@"Select source:" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Camera", @"Photo Library", nil];
+    [alerta show];
+    
+}
+
 #pragma mark textField Delegate
 
 -(BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     [textField resignFirstResponder];
     return YES;
+}
+
+
+
+#pragma mark alert Delegate
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if(buttonIndex == 0)
+    {
+        [alertView dismissWithClickedButtonIndex:0 animated:YES];
+        return;
+    }
+    UIImagePickerController* camera =[[UIImagePickerController alloc]init];
+    if(buttonIndex == 1)
+    {
+    [camera setSourceType:UIImagePickerControllerSourceTypeCamera];
+    }
+    else{
+        [camera setSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
+    }
+    [camera setDelegate:self];
+    
+    [self presentViewController:camera animated:NO completion:^{}];
+}
+
+-(void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+        
+    [self.imagePoza setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+    
+    [picker dismissViewControllerAnimated:YES completion:^{
+    }];
+
+}
+
+-(void)showPicture{
+    photoViewController *pVC = [[photoViewController alloc] initWithNibName:@"photoViewController" bundle:nil];
+    [pVC setDelegate:self]; 
+    pVC.poza = [self.imagePoza image];
+    //[self.navigationController pushViewController:pVC animated:YES];
+    
+    [self presentViewController:pVC animated:YES completion:nil];
+}
+
+-(void)closePhotoWithTimeInterval:(NSTimeInterval)seconds{
+    NSLog(@"%f seconds", seconds);
 }
 
 @end
